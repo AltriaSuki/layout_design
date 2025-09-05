@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
+project(layout_design)
+
+set(CMAKE_CXX_STANDARD 20)
+file(GLOB SOURCES "src/*.cpp")
+include_directories(include)
+add_executable(${PROJECT_NAME} ${SOURCES})
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
