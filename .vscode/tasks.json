@@ -10,7 +10,7 @@
                 "isDefault": true
             },
             "problemMatcher": ["$gcc"],
-            "detail": "g++ version:202002"
+            "detail": "cpp version:202002"
         }
     ]
 }
