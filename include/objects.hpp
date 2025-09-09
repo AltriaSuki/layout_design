@@ -39,6 +39,7 @@ public:
         isFixed = false;
      }
     POS_2D center; 
+    
  
 };
 class SiteRow 
@@ -59,15 +60,18 @@ public:
     POS_2D start;               
     POS_2D end;                 
 };
-
+/**
+ * @brief id:0 respresents I;1 respresents O
+ */
 class Pin
 {
 public:
+
     Pin()
     {
         init();
     }
-
+    
     void init()
     {
         idx = -1;
@@ -85,16 +89,16 @@ public:
 class Net
 {
 public:
-    Net()
+
+    Net(string& _name):name(_name)
     {
         init();
     }
-    int idx;
+    string name;
     vector<Pin *> netPins;
 
     void init()
     {
-        idx = 0;
         netPins.clear();
     }
 };

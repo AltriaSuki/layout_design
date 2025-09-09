@@ -17,5 +17,11 @@ public:
     vector<SiteRow> SiteRows;
 
     map<string, Module *> moduleMap; 
+    Module* getModuleByName(const string &name){
+        if(moduleMap.find(name) != moduleMap.end()){
+            return moduleMap[name];
+        }
+        return nullptr;
+    }
 };
 #endif
