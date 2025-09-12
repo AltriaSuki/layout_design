@@ -26,14 +26,14 @@ class FileReader{
             std::filesystem::path pl_path = path / (dir_name + ".pl");
             std::filesystem::path scl_path = path / (dir_name + ".scl");
             std::filesystem::path wts_path = path / (dir_name + ".wts");
-            pdata = new PlaceData();
+            pdata = make_shared<PlaceData>();
             // read_aux(aux_path);
             read_nets(nets_path);
             // read_nodes(nodes_path);
             // read_pl(pl_path);
             // read_scl(scl_path);
             // read_wts(wts_path);
-            myplace = new MyPlacer(pdata);
+            myplace = make_shared<MyPlacer>(pdata.get());
         }
         void print(){
             std::cout << "1"<<std::endl;
@@ -50,10 +50,10 @@ class FileReader{
     void read_scl(const std::filesystem::path& scl_path);
     void read_wts(const std::filesystem::path& wts_path);
 
-    PlaceData* pdata;
-    MyPlacer* myplace;
+        // PlaceData* pdata;
+        // MyPlacer* myplace;
 
-    
+    shared_ptr<PlaceData> pdata;
+    shared_ptr<MyPlacer> myplace;
 
-    
 };

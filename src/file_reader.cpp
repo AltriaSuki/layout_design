@@ -24,7 +24,7 @@ void FileReader::read_nets(const std::filesystem::path& nets_path){
             unsigned int num_pins = std::stoi(token);
             string net_name;
             iss >> net_name;
-            Net* net = new Net(net_name);
+            auto net = std::make_shared<Net>(net_name);
             for(unsigned int i = 0; i < num_pins;i++){
                 std::getline(infile,line);
                 std::istringstream pin_iss(line);
@@ -37,13 +37,13 @@ void FileReader::read_nets(const std::filesystem::path& nets_path){
                 x_offset = std::stof(token);
                 pin_iss >> token;
                 y_offset = std::stof(token);
-                Module* mod = pdata->getModuleByName(module_name);
+                auto mod = pdata->getModuleByName(module_name);
                 if(mod == nullptr){
                     // throw std::runtime_error("Module " + module_name + " not found in moduleMap");
                 }else{
 
                 }
-                Pin* pin = new Pin();
+                auto pin = std::make_shared<Pin>();
                 if(pin_name == "I"){
                     pin->idx = 0;
                 }else if(pin_name == "O"){

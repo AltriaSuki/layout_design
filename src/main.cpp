@@ -1,10 +1,12 @@
 #include <iostream>
+#include <filesystem>
 #include "file_reader.hpp"
 int main(){
 	std::cout << "Hello, World!" << std::endl;
-	std::string file("adaptec1");
+	std::filesystem::path current_path = std::filesystem::current_path();
+	std::string file("/home/yuki/data/Coding/layout_design/adaptec1");
 	std::cout << "Reading file: " << file << std::endl;
-	auto fr = new FileReader(file);
+	auto fr = std::make_shared<FileReader>(file);
 	fr->print();
 	std::cout << "File read successfully!" << std::endl;
 	return 0;

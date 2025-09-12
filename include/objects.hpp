@@ -1,7 +1,7 @@
 #ifndef OBJECTS_H
 #define OBJECTS_H
 #include "common.hpp"
-
+#include <memory>
 class Module;
 class SiteRow;
 class Pin;
@@ -24,8 +24,10 @@ public:
     bool isMacro;
     bool isFixed;
     bool isFiller;
-    vector<Pin *> modulePins;
-    vector<Net *> nets;
+    // vector<Pin *> modulePins;
+    // vector<Net *> nets;
+    vector<shared_ptr<Pin>> modulePins;
+    vector<shared_ptr<Net>> nets;
     void Init()
     {
         idx = -1;
@@ -61,7 +63,7 @@ public:
     POS_2D end;                 
 };
 /**
- * @brief id:0 respresents I;1 respresents O
+ * @brief id:0 respresents I;1 respresents O,2 represents B
  */
 class Pin
 {
@@ -75,15 +77,16 @@ public:
     void init()
     {
         idx = -1;
-        module = NULL;
-        net = NULL;
         offset.SetZero();
 
     }
     int idx;
-    Module *module;
-    Net *net;
+    // Module *module;
+    // Net *net;
+    weak_ptr<Module> module;
+    weak_ptr<Net> net;
     POS_2D offset;
+
 };
 
 class Net
@@ -95,12 +98,14 @@ public:
         init();
     }
     string name;
-    vector<Pin *> netPins;
+    vector<shared_ptr<Pin>> netPins;
 
     void init()
     {
         netPins.clear();
     }
+
+
 };
 
 #endif

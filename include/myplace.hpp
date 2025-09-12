@@ -41,5 +41,6 @@ public:
     vector<VECTOR_3D> densityGradient;   
     vector<VECTOR_3D> totalGradient;      
     vector<VECTOR_3D> fillerGradient;
+
 };
 #endif
