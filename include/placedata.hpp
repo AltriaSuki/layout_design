@@ -9,6 +9,8 @@ public:
   int netCount;
   int pinCount;
 
+  size_t max_net_degree{0};
+
   // vector<Module *> Nodes;
   // vector<Module *> Terminals;
   // vector<Pin *> Pins;

@@ -68,7 +68,7 @@ public:
   // Module *module;
   // Net *net;
   weak_ptr<Module> module;
-  weak_ptr<Net> net;
+  weak_ptr<Net> net; // pin belongs to net,so use weak_ptr
   POS_2D offset;
 };
 
