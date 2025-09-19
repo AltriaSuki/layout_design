@@ -36,16 +36,17 @@ public:
     std::vector<std::thread> threads;
     
     // read_aux(aux_path);
+    read_pl(pl_path);
     read_nets(nets_path);
     // read_nodes(nodes_path);
-    read_pl(pl_path);
+    
     // read_scl(scl_path);
     // read_wts(wts_path);
     myplace = make_shared<MyPlacer>(pdata.get());
   }
 
   void print() {
-    // std::cout<<pdata->pinCount<<" "<<pdata->Pins.size();
+    std::cout<<pdata->pinCount<<" "<<pdata->Pins.size();
     std::cout << pdata->max_net_degree;
   }
 

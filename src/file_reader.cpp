@@ -58,90 +58,71 @@ void FileReader::read_pl(const fs::path &filePath) {
   cout << "read_pl done" << endl;
 }
 
-void FileReader::process_net(const std::string &sv) {
-  string line;
-      std::istringstream iss(sv);
-
-      while (std::getline(iss, line)) {
-        std::istringstream line_iss(line);
-        std::string token, skip;
-        std::string_view sv(line);
-        if (sv.find("NumPins") != std::string_view::npos) {
-          line_iss >> skip >> skip >> token;
-          std::from_chars(token.data(), token.data() + token.size(),
-                          pdata->pinCount);
-          pdata->Pins.reserve(2 * pdata->pinCount);
-        } else if (sv.find("NumNets") != std::string_view::npos) {
-          line_iss >> skip >> skip >> token;
-          std::from_chars(token.data(), token.data() + token.size(),
-                          pdata->netCount);
-          pdata->Nets.reserve(2 * pdata->netCount);
-        } else if (sv.find("NetDegree") != std::string_view::npos) {
-          line_iss >> skip >> skip >> token;
-          unsigned int num_pins = std::stoi(token);
-          string net_name;
-          line_iss >> net_name;
-          auto net = std::make_shared<Net>(net_name);
-          pdata->max_net_degree = pdata->max_net_degree > num_pins
-                                      ? pdata->max_net_degree
-                                      : num_pins;
-          for (unsigned int i = 0; i < num_pins; i++) {
-            std::getline(iss, line);
-            std::istringstream pin_iss(line);
-            string pin_name, module_name;
-            pin_iss >> module_name;
-            pin_iss >> pin_name;
-            pin_iss >> skip; // skip :
-            float x_offset, y_offset;
-            pin_iss >> token; //   std::istringstream iss(line);
-            std::from_chars(token.data(), token.data() + token.size(),
-                            x_offset);
-            pin_iss >> token;
-            std::from_chars(token.data(), token.data() + token.size(),
-                            y_offset);
-            auto mod = pdata->getModuleByName(module_name);
-            if (mod == nullptr) {
-              // throw std::runtime_error("Module " + module_name + " not found
-              // in moduleMap");
-            } else {
-            }
-            auto pin = std::make_shared<Pin>();
-            if (pin_name == "I") {
-              pin->idx = 0;
-            } else if (pin_name == "O") {
-              pin->idx = 1;
-            } else if (pin_name == "B") {
-              pin->idx = 2;
-            }
-            pin->module = mod;
-            pin->offset = POS_2D(x_offset, y_offset);
-            pin->net = net;
-            // mod->modulePins.push_back(pin);
-            // mod->nets.push_back(net);leave it undone until other files have
-            // been read
-            net->netPins.push_back(pin);
-            pdata->Pins.push_back(pin);
-          }
-          pdata->Nets.push_back(net);
-        }
-}
-}
 void FileReader::read_nets(const std::filesystem::path &nets_path) {
   std::ifstream infile(nets_path);
   if (!infile) {
     throw std::runtime_error("Could not open file: " +
                              nets_path.filename().string());
   }
-  std::string LINE_BLOCK;
-  int line_count = 0;
-  while (std::getline(infile, LINE_BLOCK)) {
-    line_count++;
-    if (line_count % NUM_LINES == 0) {
-      process_net(LINE_BLOCK);
-      LINE_BLOCK.clear();
+  std::string line;
+  while (std::getline(infile, line)) {
+    std::istringstream iss(line);
+    std::string token, skip;
+    std::string_view sv(line);
+    
+    if (sv.find("NumPins") != std::string_view::npos) {
+      iss >> skip >> skip >> token;
+      std::from_chars(token.data(), token.data() + token.size(),
+                      pdata->pinCount);
+      pdata->Pins.reserve(2 * pdata->pinCount);
+    } else if (sv.find("NumNets") != std::string_view::npos) {
+      iss >> skip >> skip >> token;
+      std::from_chars(token.data(), token.data() + token.size(),
+                      pdata->netCount);
+      pdata->Nets.reserve(2 * pdata->netCount);
+    } else if (sv.find("NetDegree") != std::string_view::npos) {
+      iss >> skip >> skip >> token;
+      unsigned int num_pins = std::stoi(token);
+      string net_name;
+      iss >> net_name;
+      auto net = std::make_shared<Net>(net_name);
+      pdata->max_net_degree =
+          pdata->max_net_degree > num_pins ? pdata->max_net_degree : num_pins;
+      for (unsigned int i = 0; i < num_pins; i++) {
+        std::getline(infile, line);
+        std::istringstream pin_iss(line);
+        string pin_name, module_name;
+        pin_iss >> module_name;
+        pin_iss >> pin_name;
+        pin_iss >> skip; // skip :
+        float x_offset, y_offset;
+        pin_iss >> token;
+        std::from_chars(token.data(), token.data() + token.size(), x_offset);
+        pin_iss >> token;
+        std::from_chars(token.data(), token.data() + token.size(), y_offset);
+        {auto mod = pdata->getModuleByName(module_name);
+        if (mod == nullptr) {
+          throw std::runtime_error("Module " + module_name + " not found in moduleMap");
+        } else {
+        }
+        auto pin = std::make_shared<Pin>();
+        if (pin_name == "I") {
+          pin->idx = 0;
+        } else if (pin_name == "O") {
+          pin->idx = 1;
+        } else if (pin_name == "B") {
+          pin->idx = 2;
+        }
+        pin->module = mod;
+        pin->offset = POS_2D(x_offset, y_offset);
+        pin->net = net;
+        mod->modulePins.push_back(pin);
+        mod->nets.push_back(net);
+        // read
+        net->netPins.push_back(pin);
+        pdata->Pins.push_back(pin);}
+      }
+      pdata->Nets.push_back(net);
     }
-  }
-  if(!LINE_BLOCK.empty()){
-    process_net(LINE_BLOCK);
   }
 }
