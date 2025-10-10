@@ -69,7 +69,6 @@ void FileReader::read_nets(const std::filesystem::path &nets_path) {
     std::istringstream iss(line);
     std::string token, skip;
     std::string_view sv(line);
-    
     if (sv.find("NumPins") != std::string_view::npos) {
       iss >> skip >> skip >> token;
       std::from_chars(token.data(), token.data() + token.size(),
@@ -88,6 +87,11 @@ void FileReader::read_nets(const std::filesystem::path &nets_path) {
       auto net = std::make_shared<Net>(net_name);
       pdata->max_net_degree =
           pdata->max_net_degree > num_pins ? pdata->max_net_degree : num_pins;
+      if(pdata->pin_num.find(num_pins) == pdata->pin_num.end()) {
+        pdata->pin_num[num_pins] = 1;
+      }else {
+        pdata->pin_num[num_pins] += 1;
+      }
       for (unsigned int i = 0; i < num_pins; i++) {
         std::getline(infile, line);
         std::istringstream pin_iss(line);
@@ -100,7 +104,7 @@ void FileReader::read_nets(const std::filesystem::path &nets_path) {
         std::from_chars(token.data(), token.data() + token.size(), x_offset);
         pin_iss >> token;
         std::from_chars(token.data(), token.data() + token.size(), y_offset);
-        {auto mod = pdata->getModuleByName(module_name);
+        auto mod = pdata->getModuleByName(module_name);
         if (mod == nullptr) {
           throw std::runtime_error("Module " + module_name + " not found in moduleMap");
         } else {
@@ -120,9 +124,80 @@ void FileReader::read_nets(const std::filesystem::path &nets_path) {
         mod->nets.push_back(net);
         // read
         net->netPins.push_back(pin);
-        pdata->Pins.push_back(pin);}
+        pdata->Pins.push_back(pin);
       }
       pdata->Nets.push_back(net);
     }
   }
+}
+
+
+void FileReader::read_scl(const fs::path& scl_path)
+{
+    if (scl_path.extension() != ".scl") {
+        throw std::runtime_error("File extension is not .scl");
+    }
+
+    std::ifstream file(scl_path);
+    if (!file) {
+        throw std::runtime_error("File not found/opened: " + scl_path.filename().string());
+    }
+
+    std::string line;
+    int numRows = 0;
+    while (std::getline(file, line)) {
+        // 去除注释和空行
+        if (line.empty() || line[0] == '#') continue;
+
+        std::istringstream iss(line);
+        std::string token;
+        iss >> token;
+
+        if (token == "NumRows") {
+            iss.ignore(256, ':');
+            iss >> numRows;
+            pdata->numRows = numRows; // 如果PlaceData有这个字段
+        } else if (token == "CoreRow") {
+            // 进入CoreRow块
+            std::string orientation;
+            iss >> orientation; // Horizontal
+            int Coordinate = 0, Height = 0, Sitewidth = 0, Sitespacing = 0;
+            int Siteorient = 0, Sitesymmetry = 0, SubrowOrigin = 0, NumSites = 0;
+
+            // 逐行读取CoreRow参数
+            while (std::getline(file, line)) {
+                if (line.find("End") != std::string::npos) break;
+                std::istringstream row_iss(line);
+                std::string key;
+                row_iss >> key;
+                if (key == "Coordinate") {
+                    row_iss.ignore(256, ':');
+                    row_iss >> Coordinate;
+                } else if (key == "Height") {
+                    row_iss.ignore(256, ':');
+                    row_iss >> Height;
+                } else if (key == "Sitewidth") {
+                    row_iss.ignore(256, ':');
+                    row_iss >> Sitewidth;
+                } else if (key == "Sitespacing") {
+                    row_iss.ignore(256, ':');
+                    row_iss >> Sitespacing;
+                } else if (key == "Siteorient") {
+                    row_iss.ignore(256, ':');
+                    row_iss >> Siteorient;
+                } else if (key == "Sitesymmetry") {
+                    row_iss.ignore(256, ':');
+                    row_iss >> Sitesymmetry;
+                } else if (key == "SubrowOrigin") {
+                    row_iss.ignore(256, ':');
+                    row_iss >> SubrowOrigin;
+                    std::string dummy;
+                    row_iss >> dummy; // NumSites
+                    row_iss.ignore(256, ':');
+                    row_iss >> NumSites;
+                }
+            }
+        }
+    }
+    std::cout << "read_scl done" << std::endl;
 }

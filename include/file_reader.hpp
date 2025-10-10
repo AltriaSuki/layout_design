@@ -12,7 +12,6 @@
 #include <string_view>
 #include <thread>
 
-#define NUM_LINES 100000
 
 class FileReader {
 public:
@@ -40,14 +39,18 @@ public:
     read_nets(nets_path);
     // read_nodes(nodes_path);
     
-    // read_scl(scl_path);
+    read_scl(scl_path);
     // read_wts(wts_path);
     myplace = make_shared<MyPlacer>(pdata.get());
   }
 
   void print() {
-    std::cout<<pdata->pinCount<<" "<<pdata->Pins.size();
-    std::cout << pdata->max_net_degree;
+    std::cout<<"Net count: " << pdata->netCount << std::endl;
+    std::cout<<"Max net degree: " << pdata->max_net_degree << std::endl;
+    std::cout<<"Pin count: " << pdata->pinCount << std::endl;
+    for(auto& [degree,count] : pdata->pin_num) {
+      std::cout<<"Degree: " << degree << ", Count: " << count << std::endl;
+    }
   }
 
 private:
