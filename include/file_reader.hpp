@@ -70,6 +70,7 @@ private:
 
   shared_ptr<PlaceData> pdata;
   shared_ptr<MyPlacer> myplace;
+
 };
 
 struct Orientation {

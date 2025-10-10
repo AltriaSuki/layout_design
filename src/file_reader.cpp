@@ -5,7 +5,7 @@ std::vector<std::string> FileReader::splist_by_space(std::string &line) {
   std::stringstream iss(line);
   std::string token;
   while (iss >> token) {
-    result.push_back(token);
+    result.push_back(std::move(token));
   }
   return result;
 }
@@ -58,6 +58,9 @@ void FileReader::read_pl(const fs::path &filePath) {
   cout << "read_pl done" << endl;
 }
 
+
+
+
 void FileReader::read_nets(const std::filesystem::path &nets_path) {
   std::ifstream infile(nets_path);
   if (!infile) {
@@ -81,7 +84,8 @@ void FileReader::read_nets(const std::filesystem::path &nets_path) {
       pdata->Nets.reserve(2 * pdata->netCount);
     } else if (sv.find("NetDegree") != std::string_view::npos) {
       iss >> skip >> skip >> token;
-      unsigned int num_pins = std::stoi(token);
+      size_t num_pins;
+      std::from_chars(token.data(), token.data() + token.size(), num_pins);
       string net_name;
       iss >> net_name;
       auto net = std::make_shared<Net>(net_name);
