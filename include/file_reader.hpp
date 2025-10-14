@@ -61,10 +61,6 @@ private:
   void read_wts(const std::filesystem::path &wts_path);
 
   void process_net(const std::string &sv);
-  //为string_view跳过空格,例如"a b"变成了"b"
-  // void string_view_skip(std::string_view &sv);
-
-  std::string_view get_token(std::string_view &sv);
 
   std::vector<std::string> splist_by_space(std::string &line);
 

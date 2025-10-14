@@ -1,7 +1,4 @@
 #include "file_reader.hpp"
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
 
 std::vector<std::string> FileReader::splist_by_space(std::string &line) {
   std::vector<string> result;
@@ -61,76 +58,33 @@ void FileReader::read_pl(const fs::path &filePath) {
   cout << "read_pl done" << endl;
 }
 
-std::string_view FileReader::get_token(std::string_view &sv){
-  if(sv.empty()) return "";
-  size_t pos =0;
-  size_t size = sv.size();
-  while(pos < size && (sv[pos] == ' ' || sv[pos] == '\t'))++pos;
-  size_t end_pos = pos;
-  while(end_pos < size && sv[end_pos] != ' ' && sv[end_pos]!='\t' ) ++end_pos;
-  std::string_view token = sv.substr(pos,end_pos - pos);
-  sv.remove_prefix(end_pos);
-  return token; 
-
-}
-
 void FileReader::read_nets(const std::filesystem::path &nets_path) {
-  int fd = open(nets_path.c_str(), O_RDONLY);
-  if (fd == -1)throw std::runtime_error("Could not open file: " +
+  std::ifstream infile(nets_path);
+  if (!infile) {
+    throw std::runtime_error("Could not open file: " +
                              nets_path.filename().string());
-  size_t file_size = lseek(fd, 0, SEEK_END);
-  char* data = static_cast<char*>(mmap(nullptr, file_size, PROT_READ, MAP_PRIVATE, fd, 0));
-  if(data == MAP_FAILED){
-    close(fd);
-    throw std::runtime_error("Could not mmap file: " + nets_path.filename().string());
   }
-  std::string_view file_view(data, file_size);
-  // size_t line_start = 0;
-  // std::ifstream infile(nets_path);
-  // if (!infile) {
-  //   throw std::runtime_error("Could not open file: " +
-  //                            nets_path.filename().string());
-  // }
-  // std::string line;
-  const char* p = data;
-  const char* end = data + file_size;
-  while (p < end) {
-    const char* line_end = static_cast<const char*>(memchr(p, '\n', end - p));
-    if(!line_end){
-      line_end = end;
-    }
-    std::string_view line(p, line_end - p);
-    p = line_end + 1;
-    // line_start = line_end + 1;
-    // std::istringstream iss(line);
-    std::string token;
-    // std::string_view sv(line);
-    if (line.find("NumPins") != std::string_view::npos) {
-      // iss >> skip >> skip >> token;
-      get_token(line); // skip NumPins
-      get_token(line); // skip :
-      // token = std::string(get_token(line));
-      std::string_view token_sv = get_token(line);
-      std::from_chars(token_sv.data(), token_sv.data() + token_sv.size(),
+  std::string line;
+  while (std::getline(infile, line)) {
+    std::istringstream iss(line);
+    std::string token, skip;
+    std::string_view sv(line);
+    if (sv.find("NumPins") != std::string_view::npos) {
+      iss >> skip >> skip >> token;
+      std::from_chars(token.data(), token.data() + token.size(),
                       pdata->pinCount);
       pdata->Pins.reserve(2 * pdata->pinCount);
-    } else if (line.find("NumNets") != std::string_view::npos) {
-      get_token(line); // skip NumNets
-      get_token(line); // skip :
-      // token = std::string(get_token(line));
-      std::string_view token_sv = get_token(line);
-      std::from_chars(token_sv.data(), token_sv.data() + token_sv.size(),
+    } else if (sv.find("NumNets") != std::string_view::npos) {
+      iss >> skip >> skip >> token;
+      std::from_chars(token.data(), token.data() + token.size(),
                       pdata->netCount);
       pdata->Nets.reserve(2 * pdata->netCount);
-    } else if (line.find("NetDegree") != std::string_view::npos) {
-      // iss >> skip >> skip >> token;
-      get_token(line); // skip NetDegree
-      get_token(line); // skip :
-      // token = std::string(get_token(line));
-      std::string_view token_sv = get_token(line);
+    } else if (sv.find("NetDegree") != std::string_view::npos) {
+      iss >> skip >> skip >> token;
       size_t num_pins;
-      std::from_chars(token_sv.data(), token_sv.data() + token_sv.size(), num_pins);
-      std::string net_name = std::string(get_token(line));
+      std::from_chars(token.data(), token.data() + token.size(), num_pins);
+      string net_name;
+      iss >> net_name;
       auto net = std::make_shared<Net>(net_name);
       pdata->max_net_degree =
           pdata->max_net_degree > num_pins ? pdata->max_net_degree : num_pins;
@@ -140,33 +94,16 @@ void FileReader::read_nets(const std::filesystem::path &nets_path) {
         pdata->pin_num[num_pins] += 1;
       }
       for (unsigned int i = 0; i < num_pins; i++) {
-        // std::getline(infile, line);
-        // std::istringstream pin_iss(line);
-        // auto line_end = file_view.find('\n',line_start);
-        // if(line_end == std::string_view::npos){
-        //   line_end = file_size;
-        // }
-        // std::string_view pin_line = file_view.substr(line_start,line_end-line_start);
-        const char* line_end = static_cast<const char*>(memchr(p, '\n', end - p));
-        if(!line_end){
-          line_end = end;
-        }
-        std::string_view pin_line(p,line_end - p);
-        p = line_end + 1;
-        
-
+        std::getline(infile, line);
+        std::istringstream pin_iss(line);
         string pin_name, module_name;
-        module_name=std::string(get_token(pin_line));
-        pin_name=std::string(get_token(pin_line));
-        get_token(pin_line); // skip :
-        // pin_iss >> module_name;
-        // pin_iss >> pin_name;
-        // pin_iss >> skip; // skip :
+        pin_iss >> module_name;
+        pin_iss >> pin_name;
+        pin_iss >> skip; // skip :
         float x_offset, y_offset;
-        token = std::string(get_token(pin_line));
+        pin_iss >> token;
         std::from_chars(token.data(), token.data() + token.size(), x_offset);
-        // pin_iss >> token;
-        token = std::string(get_token(pin_line));
+        pin_iss >> token;
         std::from_chars(token.data(), token.data() + token.size(), y_offset);
         auto mod = pdata->getModuleByName(module_name);
         if (mod == nullptr) {
@@ -194,9 +131,6 @@ void FileReader::read_nets(const std::filesystem::path &nets_path) {
       pdata->Nets.push_back(net);
     }
   }
-  munmap(data,file_size);
-  close(fd);
-  std::cout << "read_nets done" << std::endl;
 }
 
 void FileReader::read_scl(const fs::path &scl_path) {
