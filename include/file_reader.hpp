@@ -12,7 +12,6 @@
 #include <string_view>
 #include <thread>
 
-
 class FileReader {
 public:
   /**
@@ -33,23 +32,23 @@ public:
     std::filesystem::path wts_path = path / (dir_name + ".wts");
     pdata = make_shared<PlaceData>();
     std::vector<std::thread> threads;
-    
+
     // read_aux(aux_path);
     read_pl(pl_path);
     read_nets(nets_path);
     // read_nodes(nodes_path);
-    
+
     read_scl(scl_path);
     // read_wts(wts_path);
     myplace = make_shared<MyPlacer>(pdata.get());
   }
 
   void print() {
-    std::cout<<"Net count: " << pdata->netCount << std::endl;
-    std::cout<<"Max net degree: " << pdata->max_net_degree << std::endl;
-    std::cout<<"Pin count: " << pdata->pinCount << std::endl;
-    for(auto& [degree,count] : pdata->pin_num) {
-      std::cout<<"Degree: " << degree << ", Count: " << count << std::endl;
+    std::cout << "Net count: " << pdata->netCount << std::endl;
+    std::cout << "Max net degree: " << pdata->max_net_degree << std::endl;
+    std::cout << "Pin count: " << pdata->pinCount << std::endl;
+    for (auto &[degree, count] : pdata->pin_num) {
+      std::cout << "Degree: " << degree << ", Count: " << count << std::endl;
     }
   }
 
@@ -62,6 +61,10 @@ private:
   void read_wts(const std::filesystem::path &wts_path);
 
   void process_net(const std::string &sv);
+  //为string_view跳过空格,例如"a b"变成了"b"
+  // void string_view_skip(std::string_view &sv);
+
+  std::string_view get_token(std::string_view &sv);
 
   std::vector<std::string> splist_by_space(std::string &line);
 
@@ -70,7 +73,6 @@ private:
 
   shared_ptr<PlaceData> pdata;
   shared_ptr<MyPlacer> myplace;
-
 };
 
 struct Orientation {
