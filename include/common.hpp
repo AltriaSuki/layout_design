@@ -19,10 +19,10 @@ using namespace std;
 struct POS_2D // POS means postition which can be used to store coordinates,
               // offsets
 {
-  float x;
-  float y;
+  double x;
+  double y;
   POS_2D() { SetZero(); };
-  POS_2D(float _x, float _y) {
+  POS_2D(double _x, double _y) {
     x = _x;
     y = _y;
   }
